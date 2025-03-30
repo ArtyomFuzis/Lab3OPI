@@ -1,138 +1,148 @@
 <?xml version="1.0"?>
 
-<project name="lab3" default="build" xmlns:ivy="antlib:org.apache.ivy.ant" xmlns:if="ant:if" xmlns:unless="ant:unless">
-	<property file="build.properties"/>
-	
+<project name="lab3" default="build" xmlns:ivy="antlib:org.apache.ivy.ant" xmlns:if="ant:if"
+	xmlns:unless="ant:unless">
+	<property file="build.properties" />
+
 	<path id="classpath.compile">
-        <fileset dir="${dir.compilelib}" includes="*.jar"/>
-    </path>
-	
+		<fileset dir="${dir.compilelib}" includes="*.jar" />
+	</path>
+
 	<path id="classpath.test">
-		<fileset dir="${dir.artifacts}" includes="*.jar"/>
-        <fileset dir="${dir.testlib}" includes="*.jar"/>
-    </path>
-	
+		<fileset dir="${dir.artifacts}" includes="*.jar" />
+		<fileset dir="${dir.testlib}" includes="*.jar" />
+	</path>
+
 	<target name="prepare">
-		<mkdir dir="${dir.compile}"/>
-		<mkdir dir="${dir.compilelib}"/>
-		<mkdir dir="${dir.testlib}"/>
-		<mkdir dir="${dir.runtimelib}"/>
-		<ivy:resolve/>
-		<ivy:retrieve pattern="${dir.compilelib}/[artifact]-[revision](-[classifier]).[ext]" conf="compile"/>
-		<ivy:retrieve pattern="${dir.runtimelib}/[artifact]-[revision](-[classifier]).[ext]" conf="runtime"/>
-		<ivy:retrieve pattern="${dir.testlib}/[artifact]-[revision](-[classifier]).[ext]" conf="test"/>
+		<mkdir dir="${dir.compile}" />
+		<mkdir dir="${dir.compilelib}" />
+		<mkdir dir="${dir.testlib}" />
+		<mkdir dir="${dir.runtimelib}" />
+		<ivy:resolve />
+		<ivy:retrieve pattern="${dir.compilelib}/[artifact]-[revision](-[classifier]).[ext]"
+			conf="compile" />
+		<ivy:retrieve pattern="${dir.runtimelib}/[artifact]-[revision](-[classifier]).[ext]"
+			conf="runtime" />
+		<ivy:retrieve pattern="${dir.testlib}/[artifact]-[revision](-[classifier]).[ext]"
+			conf="test" />
 	</target>
-	
+
 	<target name="compile" depends="clean">
-		<antcall target="prepare"/>
-		<javac srcdir="${dir.src}" destdir="${dir.compile}" classpathref="classpath.compile" includeantruntime="false"/>
+		<antcall target="prepare" />
+		<javac srcdir="${dir.src}" destdir="${dir.compile}" classpathref="classpath.compile"
+			includeantruntime="false" />
 	</target>
-	
+
 	<target name="build" depends="compile">
-		<antcall target="trustful_build"/>
+		<antcall target="trustful_build" />
 	</target>
-	
+
 	<target name="trustful_build">
-		<mkdir dir="${dir.build}"/>
-		<mkdir dir="${dir.build.libs}"/>
+		<mkdir dir="${dir.build}" />
+		<mkdir dir="${dir.build.libs}" />
 		<copy todir="${dir.build.libs}">
-            <fileset dir="${dir.runtimelib}"/>
-        </copy>
-        <copy todir="${dir.build.classes}">
-            <fileset dir="${dir.compile}"/>
-        </copy>
-        <copy todir="${dir.build}">
-            <fileset dir="${dir.resources}" includes="*.xml"/>
-			<fileset dir="${dir.resources.webapp}"/>
-        </copy>
-        <war destfile="${dir.war}">
-            <fileset dir="${dir.build}"/>
-            <manifest>
-                <attribute name="Manifest-Version" value="1.0"/>
-                <attribute name="Main-Class" value="NoClass"/>
-            </manifest>
-        </war>
+			<fileset dir="${dir.runtimelib}" />
+		</copy>
+		<copy todir="${dir.build.classes}">
+			<fileset dir="${dir.compile}" />
+		</copy>
+		<copy todir="${dir.build}">
+			<fileset dir="${dir.resources}" includes="*.xml" />
+			<fileset dir="${dir.resources.webapp}" />
+		</copy>
+		<war destfile="${dir.war}">
+			<fileset dir="${dir.build}" />
+			<manifest>
+				<attribute name="Manifest-Version" value="1.0" />
+				<attribute name="Main-Class" value="NoClass" />
+			</manifest>
+		</war>
 		<jar destfile="${dir.jar}">
-            <fileset dir="${dir.compile}"/>
-            <manifest>
-                <attribute name="Manifest-Version" value="1.0"/>
-                <attribute name="Main-Class" value="NoClass"/>
-            </manifest>
-        </jar>
+			<fileset dir="${dir.compile}" />
+			<manifest>
+				<attribute name="Manifest-Version" value="1.0" />
+				<attribute name="Main-Class" value="NoClass" />
+			</manifest>
+		</jar>
 	</target>
-	
+
 	<target name="test" depends="build">
-		<mkdir dir="${dir.testcompile}"/>
-		<mkdir dir="${dir.testreports}"/>
-		<javac srcdir="${dir.testsrc}" destdir="${dir.testcompile}" classpathref="classpath.test" includeantruntime="false"/>
-		<junit printsummary="on" haltonfailure="true" haltonerror="true" fork="true" showoutput="yes">
-            <classpath>
-                <path refid="classpath.test"/>
-				<pathelement location="${dir.testcompile}"/>
-            </classpath>
-            <formatter type="plain"/>
+		<mkdir dir="${dir.testcompile}" />
+		<mkdir dir="${dir.testreports}" />
+		<javac srcdir="${dir.testsrc}" destdir="${dir.testcompile}" classpathref="classpath.test"
+			includeantruntime="false" />
+		<junit printsummary="on" haltonfailure="true" haltonerror="true" fork="true"
+			showoutput="yes">
+			<classpath>
+				<path refid="classpath.test" />
+				<pathelement location="${dir.testcompile}" />
+			</classpath>
+			<formatter type="plain" />
 			<batchtest todir="${dir.testreports}">
 				<fileset dir="${dir.testcompile}" />
 			</batchtest>
-        </junit>
+		</junit>
 	</target>
-	
+
 	<target name="clean">
-        <delete dir="${dir.compiledir}"/>
-        <delete dir="${dir.build}"/>
-        <delete dir="${dir.testreports}"/>
-    </target>
-	
+		<delete dir="${dir.compiledir}" />
+		<delete dir="${dir.build}" />
+		<delete dir="${dir.testreports}" />
+	</target>
+
 	<target name="doc" depends="build">
-		<mkdir dir="${dir.doc}"/>
+		<mkdir dir="${dir.doc}" />
 		<javadoc destdir="${dir.doc}" classpathref="classpath.compile">
 			<fileset dir="${dir.src}" />
 		</javadoc>
 		<zip destfile="${dir.doc.zip}">
-			<fileset dir="${dir.doc}"/>
+			<fileset dir="${dir.doc}" />
 		</zip>
 		<checksum algorithm="MD5" fileext=".md5" format="CHECKSUM" todir="${dir.checks}">
-			<fileset dir="${dir.src}"/>
+			<fileset dir="${dir.src}" />
 		</checksum>
 		<checksum algorithm="SHA-1" fileext=".sha1" format="CHECKSUM" todir="${dir.checks}">
-			<fileset dir="${dir.src}"/>
+			<fileset dir="${dir.src}" />
 		</checksum>
 		<move todir="${dir.checks}/WEB-INF/classes">
-			<fileset dir="${dir.checks}/java"/>
+			<fileset dir="${dir.checks}/java" />
 		</move>
 		<move todir="${dir.checks}">
-			<fileset dir="${dir.checks}/webapp"/>
+			<fileset dir="${dir.checks}/webapp" />
 		</move>
 		<jar destfile="${dir.jar}" update="true">
-			<fileset dir="${dir.checks}"/>
-			<fileset dir="${dir.compile}"/>
-            <manifest>
-                <attribute name="Manifest-Version" value="1.0"/>
-                <attribute name="Main-Class" value="NoClass"/>
-            </manifest>
+			<fileset dir="${dir.checks}" />
+			<fileset dir="${dir.compile}" />
+			<manifest>
+				<attribute name="Manifest-Version" value="1.0" />
+				<attribute name="Main-Class" value="NoClass" />
+			</manifest>
 		</jar>
 		<war destfile="${dir.war}" update="true">
-            <fileset dir="${dir.checks}"/>
-			<fileset dir="${dir.build}"/>
-            <manifest>
-                <attribute name="Manifest-Version" value="1.0"/>
-                <attribute name="Main-Class" value="NoClass"/>
-            </manifest>
-        </war>
+			<fileset dir="${dir.checks}" />
+			<fileset dir="${dir.build}" />
+			<manifest>
+				<attribute name="Manifest-Version" value="1.0" />
+				<attribute name="Main-Class" value="NoClass" />
+			</manifest>
+		</war>
 	</target>
-	
+
 	<target name="env">
-		<fail unless="JAVA_VERSION" message="Параметр 'JAVA_VERSION' не задан. Используйте: ant env -DJAVA_VERSION=version"/>
-		<antcall target="clean"/>
-        <antcall target="prepare"/>
-        <javac srcdir="${dir.src}" destdir="${dir.compile}" classpathref="classpath.compile" source="${JAVA_VERSION}" includeantruntime="false" if:set="JAVA_ARGS">
-            <compilerarg line="${JAVA_ARGS}"/>
-        </javac>
-		<javac srcdir="${dir.src}" destdir="${dir.compile}" classpathref="classpath.compile" source="${JAVA_VERSION}" includeantruntime="false" unless:set="JAVA_ARGS"/>
-        <antcall target="trustful_build"/>
-        <copy file="${dir.war}" todir="${dir.deployment}"/>
-        <exec executable="powershell">
-            <arg line="/c start ${dir.wildrun}"/>
-        </exec>
-    </target>
+		<fail unless="JAVA_VERSION"
+			message="Параметр 'JAVA_VERSION' не задан. Используйте: ant env -DJAVA_VERSION=version" />
+		<antcall target="clean" />
+		<antcall target="prepare" />
+		<javac srcdir="${dir.src}" destdir="${dir.compile}" classpathref="classpath.compile"
+			source="${JAVA_VERSION}" includeantruntime="false" if:set="JAVA_ARGS">
+			<compilerarg line="${JAVA_ARGS}" />
+		</javac>
+		<javac srcdir="${dir.src}" destdir="${dir.compile}" classpathref="classpath.compile"
+			source="${JAVA_VERSION}" includeantruntime="false" unless:set="JAVA_ARGS" />
+		<antcall target="trustful_build" />
+		<copy file="${dir.war}" todir="${dir.deployment}" />
+		<exec executable="powershell">
+			<arg line="/c start ${dir.wildrun}" />
+		</exec>
+	</target>
 </project>
